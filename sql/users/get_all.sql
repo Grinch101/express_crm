@@ -1,0 +1,1 @@
+SELECT email, id, client_name FROM users;
