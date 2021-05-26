@@ -35,11 +35,14 @@ function find_query_text(path) {
 function makingQuery(path, values, C) {
   return new Promise(async (res, rej) => {
     client = await C;
-    query_text = await find_query_text(path);
-    query_result = await client.query(query_text, values);
-    res(query_result.rows);
-  });
-}
+    try{
+      query_text = await find_query_text(path);
+      query_result = await client.query(query_text, values);
+      res(query_result.rows);}
+    catch(err){
+      rej(err)}
+    }
+  )}
 
 module.exports = {
   jsonify: jsonify,
