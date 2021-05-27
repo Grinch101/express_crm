@@ -35,18 +35,37 @@ function find_query_text(path) {
 function makingQuery(path, values, C) {
   return new Promise(async (res, rej) => {
     client = await C;
-    try{
+    try {
       query_text = await find_query_text(path);
       query_result = await client.query(query_text, values);
-      res(query_result.rows);}
-    catch(err){
-      rej(err)}
+      // {
+      //   // this block convert hstore to json for better user experience
+
+      //   let { phonenumber } = query_result.rows[0];
+      //   if (phonenumber) {
+      //     for (let i = 0; i < query_result.rows.length; i++) {
+      //       query_result.rows[i].email = hstore.parse(
+      //         query_result.rows[i].email
+      //       );
+      //       query_result.rows[i].phonenumber = hstore.parse(
+      //         query_result.rows[i].phonenumber,
+      //         {
+      //           numeric_check: true,
+      //         }
+      //       );
+      //     }
+      //   }
+      // }
+      res(query_result.rows);
+    } catch (err) {
+      // console.log(err);
+      rej(err);
     }
-  )}
+  });
+}
 
 module.exports = {
   jsonify: jsonify,
   JsonResponse: JsonResponse,
   makingQuery: makingQuery,
 };
-
