@@ -1,0 +1,1 @@
+UPDATE contacts SET firstname = $1, lastname = $2, email = $3, phonenumber = $4 WHERE id = $5 RETURNING *;
