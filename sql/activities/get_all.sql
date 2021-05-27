@@ -1,0 +1,1 @@
+SELECT * FROM activities WHERE contact_id = $1;
