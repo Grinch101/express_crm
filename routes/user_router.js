@@ -23,7 +23,7 @@ user_router.post("/signup", async function (req, res, next) {
     if (q) {
       jsonify("ERROR", null, "EMAIL IN USE", 406, res, client);
     } else {
-      q = await User.add_user(inputEmail, inputPassword, clientName, client);
+      let result = await User.add_user(inputEmail, inputPassword, clientName, client);
       const id = result[0].id;
       jsonify(null, id, "User Added", 201, res, client);
     }
