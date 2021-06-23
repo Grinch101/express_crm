@@ -11,6 +11,7 @@ const my_hstore = require('./middleware/my_hstore');
 app.use(express.json());
 app.use(my_hstore);
 app.use(get_client);
+app.use(logger);
 app.use("/auth", user_router);
 app.use("/contact", contact_router);
 app.use('/activity', activity_router);
