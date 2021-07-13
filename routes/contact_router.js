@@ -23,15 +23,16 @@ contact_router.get("/all", login_required, async function (req, res, next) {
 
 contact_router.post("/", login_required, async function (req, res, next) {
   const { client, user_id } = req;
-  try {
-    const pack = [
+  try{
+    const result = await Contact.add_contact(
+      user_id,
       req.body.firstname,
       req.body.lastname,
       req.body.email,
       req.body.phonenumber,
-    ];
-    const result = await Contact.add_contact(user_id, pack, client);
-    jsonify(null, result[0], "CONTACT ADDED", 201, res, client);
+      client
+    );
+    jsonify(null, result, "CONTACT ADDED", 201, res, client);
   } catch (err) {
     next(err);
   }
@@ -81,13 +82,12 @@ contact_router.put(
         q1 = await Contact.update(contact_id, req.body, client);
         jsonify(null, q1, "UPDATED", 200, res, client);
       } else {
-        jsonify('ERROR', null, 'CONTACT WAS NOT FOUND', 404, res, client)
+        jsonify("ERROR", null, "CONTACT WAS NOT FOUND", 404, res, client);
       }
     } catch (err) {
       next(err);
     }
   }
 );
-
 
 module.exports = contact_router;

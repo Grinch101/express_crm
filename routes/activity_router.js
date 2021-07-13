@@ -37,7 +37,7 @@ activity_router.post(
       pack.user_id = user_id;
       let values = Object.values(pack);
       let q1 = await Activity.add(user_id, contact_id, values, client);
-      jsonify(null, q1, "ACTIVITY ADDED", 200, res, client);
+      jsonify(null, q1, "ACTIVITY ADDED", 201, res, client);
     } catch (err) {
       next(err);
     }

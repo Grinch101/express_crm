@@ -1,5 +1,6 @@
 const fs = require("fs");
 const Path = require("path");
+const { nextTick } = require("process");
 
 const JsonResponse = {
   error: null,
@@ -8,7 +9,7 @@ const JsonResponse = {
   code: 200,
 };
 
-function jsonify(error, data, info, code, res, client) {
+async function jsonify(error, data, info, code, res, client) {
   let jr = JsonResponse;
   jr.error = error;
   jr.data = data;
@@ -16,7 +17,11 @@ function jsonify(error, data, info, code, res, client) {
   jr.code = code;
   res.status(code).send(jr);
   res.end();
-  client.release();
+  if (process.env.NODE_ENV === "PRO") {
+    await client.query("COMMIT;");
+    console.log("commit");
+    client.release();
+  }
 }
 
 function find_query_text(path) {
@@ -33,32 +38,15 @@ function find_query_text(path) {
 }
 
 function makingQuery(path, values, C) {
+  console.log(path, values)
   return new Promise(async (res, rej) => {
     client = await C;
     try {
       query_text = await find_query_text(path);
       query_result = await client.query(query_text, values);
-      // {
-      //   // this block convert hstore to json for better user experience
-
-      //   let { phonenumber } = query_result.rows[0];
-      //   if (phonenumber) {
-      //     for (let i = 0; i < query_result.rows.length; i++) {
-      //       query_result.rows[i].email = hstore.parse(
-      //         query_result.rows[i].email
-      //       );
-      //       query_result.rows[i].phonenumber = hstore.parse(
-      //         query_result.rows[i].phonenumber,
-      //         {
-      //           numeric_check: true,
-      //         }
-      //       );
-      //     }
-      //   }
-      // }
       res(query_result.rows);
     } catch (err) {
-      // console.log(err);
+      console.log(err);
       rej(err);
     }
   });

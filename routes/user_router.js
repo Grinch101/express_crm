@@ -18,12 +18,28 @@ user_router.get("/", async function (req, res, next) {
 user_router.post("/signup", async function (req, res, next) {
   const { client } = req;
   const { inputEmail, inputPassword, clientName } = req.body;
+  let data = [inputEmail, inputPassword, clientName];
+  if (
+    data.every((v) => {
+      return v === undefined;
+    }) ||
+    !data.every((v) => {
+      return v !== undefined;
+    })
+  ) {
+    jsonify("ERROR", null, "INCOMPLETE INPUTS", 400, res, client);
+  }
   try {
     var q = await User.check_presence_by_email(inputEmail, client);
     if (q) {
       jsonify("ERROR", null, "EMAIL IN USE", 406, res, client);
     } else {
-      let result = await User.add_user(inputEmail, inputPassword, clientName, client);
+      let result = await User.add_user(
+        inputEmail,
+        inputPassword,
+        clientName,
+        client
+      );
       const id = result[0].id;
       jsonify(null, id, "User Added", 201, res, client);
     }
@@ -39,7 +55,7 @@ user_router.get(
     try {
       const { client, user_id } = req; // user_id is set by login_required
       const result = await User.get_by_id(user_id, client);
-      jsonify(null, result, "CONTACT RETRIVED", 200, res, client);
+      jsonify(null, result[0], "USER RETRIVED", 200, res, client);
     } catch (err) {
       next(err);
     }
@@ -49,6 +65,14 @@ user_router.get(
 user_router.post("/login", async function (req, res, next) {
   const { client } = req;
   const { inputEmail, inputPassword } = req.body;
+  // let data = [inputEmail, inputPassword];
+  // if (
+  //   !data.every((v) => {
+  //     return v !== undefined;
+  //   })
+  // ) {
+  //   jsonify("ERROR", null, "INCOMPLETE INPUTS", 400, res, client);
+  // }
   try {
     var q = await User.check_presence_by_email(inputEmail, client);
     if (q) {
@@ -85,12 +109,14 @@ user_router.put(
       const q = await User.get_by_id(user_id, client);
       const { email, passkey, client_name } = q[0];
 
-      var new_data = [inputEmail, inputPassword, clientName];
+      let new_data = [inputEmail, inputPassword, clientName];
       if (
-        !new_data.every((val) => {
-          val != undefined;
+        new_data.every((val) => {
+          return val === undefined;
         })
       ) {
+        jsonify("ERROR", null, "EMPTY REQUEST", 400, res, client);
+      } else {
         if (inputEmail == undefined) {
           inputEmail = email;
         }
