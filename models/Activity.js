@@ -24,16 +24,16 @@ Activity.get_by_id = async function (activity_id, client) {
 };
 
 Activity.get_all = async function (contact_id, client) {
-  let result = await makingQuery(
+  return await makingQuery(
     "../sql/activities/get_all.sql",
     [contact_id],
     client
   );
-  return result.rows;
 };
 
 Activity.add = async function (values, client) {
-  return await makingQuery("../sql/activities/add.sql", values, client);
+  let result = await makingQuery("../sql/activities/add.sql", values, client);
+  return result.rows;
 };
 
 Activity.delete = async function (activity_id, client) {

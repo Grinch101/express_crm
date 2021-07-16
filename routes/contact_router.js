@@ -8,7 +8,7 @@ contact_router.get("/all", login_required, async function (req, res, next) {
   const { client, user_id } = req;
   try {
     const result = await Contact.get_all(user_id, client);
-    jsonify(
+    return jsonify(
       null,
       result,
       `ALL CONTACTS BELONG TO USER ID:${user_id} RETRIVED`,
@@ -23,7 +23,18 @@ contact_router.get("/all", login_required, async function (req, res, next) {
 
 contact_router.post("/", login_required, async function (req, res, next) {
   const { client, user_id } = req;
-  try{
+  try {
+    let data = [req.body.firstname, req.body.lastname];
+    if (
+      data.every((v) => {
+        return v === undefined;
+      }) ||
+      !data.every((v) => {
+        return v !== undefined;
+      })
+    ) {
+      return jsonify("ERROR", null, "INCOMPLETE INPUTS", 400, res, client);
+    }
     const result = await Contact.add_contact(
       user_id,
       req.body.firstname,
@@ -32,7 +43,7 @@ contact_router.post("/", login_required, async function (req, res, next) {
       req.body.phonenumber,
       client
     );
-    jsonify(null, result, "CONTACT ADDED", 201, res, client);
+    return jsonify(null, result, "CONTACT ADDED", 201, res, client);
   } catch (err) {
     next(err);
   }
@@ -50,7 +61,7 @@ contact_router.delete(
         let q1 = await Contact.delete(contact_id, client);
         let q2 = await Contact.presence(contact_id, client);
         if (!q2) {
-          jsonify(
+          return jsonify(
             null,
             { contact_id: contact_id },
             "CONTACT DELETED",
@@ -62,7 +73,14 @@ contact_router.delete(
           throw new Error("FAILED TO DELETE");
         }
       } else {
-        jsonify("ERROR", null, "CONTACT WAS NOT FOUND", 404, res, client);
+        return jsonify(
+          "ERROR",
+          null,
+          "CONTACT WAS NOT FOUND",
+          404,
+          res,
+          client
+        );
       }
     } catch (err) {
       next(err);
@@ -80,9 +98,16 @@ contact_router.put(
       let q0 = await Contact.presence(contact_id, client);
       if (q0) {
         q1 = await Contact.update(contact_id, req.body, client);
-        jsonify(null, q1, "UPDATED", 200, res, client);
+        return jsonify(null, q1, "UPDATED", 200, res, client);
       } else {
-        jsonify("ERROR", null, "CONTACT WAS NOT FOUND", 404, res, client);
+        return jsonify(
+          "ERROR",
+          null,
+          "CONTACT WAS NOT FOUND",
+          404,
+          res,
+          client
+        );
       }
     } catch (err) {
       next(err);

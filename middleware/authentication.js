@@ -7,7 +7,7 @@ login_required = function (req, res, next) {
     req.user_id = user_id;
     next();
   } catch (e) {
-    res.status(401).send("TOKEN INVALID");
+    return res.status(401).send("TOKEN INVALID");
   }
 };
 

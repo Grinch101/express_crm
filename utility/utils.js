@@ -1,6 +1,5 @@
 const fs = require("fs");
 const Path = require("path");
-const { nextTick } = require("process");
 
 const JsonResponse = {
   error: null,
@@ -38,15 +37,13 @@ function find_query_text(path) {
 }
 
 function makingQuery(path, values, C) {
-  console.log(path, values)
   return new Promise(async (res, rej) => {
-    client = await C;
+    const client = await C;
     try {
       query_text = await find_query_text(path);
       query_result = await client.query(query_text, values);
       res(query_result.rows);
     } catch (err) {
-      console.log(err);
       rej(err);
     }
   });

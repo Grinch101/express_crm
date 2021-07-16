@@ -4,7 +4,6 @@ const Activity = require("../models/Activity");
 const Contact = require("../models/Contact");
 const { jsonify } = require("../utility/utils");
 const login_required = require("../middleware/authentication");
-const { Client } = require("pg");
 
 activity_router.get(
   "/:contact_id",
@@ -13,11 +12,22 @@ activity_router.get(
     let { client } = req;
     try {
       let { contact_id } = req.params;
+      let q0 = await Contact.presence(contact_id, client);
+      if (!q0) {
+        return jsonify(
+          "ERROR",
+          null,
+          "CONTACT WAS NOT FOUND",
+          404,
+          res,
+          client
+        );
+      }
       let q1 = await Activity.get_all(contact_id, client);
-      if (!q1) {
-        jsonify(null, null, "NO ACTIVITIES FOUND", 404, res, client);
+      if (q1 === []) {
+        return jsonify(null, null, "NO ACTIVITIES FOUND", 404, res, client);
       } else {
-        jsonify(null, q1, "ACTIVITIES RETRIVED", 200, res, client);
+        return jsonify(null, q1, "ACTIVITIES RETRIVED", 200, res, client);
       }
     } catch (err) {
       next(err);
@@ -33,11 +43,22 @@ activity_router.post(
     try {
       let { contact_id } = req.params;
       let pack = req.body;
+      let data = [pack.action, pack.description, pack.date, pack.time];
+      if (
+        data.every((v) => {
+          return v === undefined;
+        }) ||
+        !data.every((v) => {
+          return v !== undefined;
+        })
+      ) {
+        return jsonify("ERROR", null, "INCOMPLETE INPUTS", 400, res, client);
+      }
       pack.contact_id = contact_id;
       pack.user_id = user_id;
       let values = Object.values(pack);
-      let q1 = await Activity.add(user_id, contact_id, values, client);
-      jsonify(null, q1, "ACTIVITY ADDED", 201, res, client);
+      let q1 = await Activity.add(values, client);
+      return jsonify(null, q1, "ACTIVITY ADDED", 201, res, client);
     } catch (err) {
       next(err);
     }
@@ -58,15 +79,22 @@ activity_router.delete(
           let q2 = await Activity.delete(activity_id, client);
           let q3 = await Activity.presence(activity_id, client);
           if (!q3) {
-            jsonify(null, q2, "CONTACT DELETED", 200, res, client);
+            return jsonify(null, q2, "CONTACT DELETED", 200, res, client);
           } else {
             throw new Error("DELETION IS NOT CONFIRMED");
           }
         } else {
-          jsonify("ERROR", null, "ACTIVITY NOT FOUND", 404, res, client);
+          return jsonify("ERROR", null, "ACTIVITY NOT FOUND", 404, res, client);
         }
       } else {
-        jsonify("ERROR", null, "CONTACT WAS NOT FOUND", 404, res, client);
+        return jsonify(
+          "ERROR",
+          null,
+          "CONTACT WAS NOT FOUND",
+          404,
+          res,
+          client
+        );
       }
     } catch (err) {
       next(err);
@@ -107,12 +135,12 @@ activity_router.put(
           }
           let values = [action, description, date, time];
           q2 = await Activity.update(activity_id, values, client);
-          jsonify(null, q2, "UPDATED", 200, res, client);
+          return jsonify(null, q2, "UPDATED", 200, res, client);
         } else {
-          jsonify("ERROR", null, "ACTIVITY NOT FOUND", 404, res, client);
+          return jsonify("ERROR", null, "ACTIVITY NOT FOUND", 404, res, client);
         }
       } else {
-        jsonify("ERROR", null, "CONTACT NOT FOUND", 404, res, client);
+        return jsonify("ERROR", null, "CONTACT NOT FOUND", 404, res, client);
       }
     } catch (err) {
       next(err);
