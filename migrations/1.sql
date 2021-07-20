@@ -1,4 +1,4 @@
-EATE DATABASE express_crm
+CREATE DATABASE express_crm
 
 CREATE EXTENSION IF NOT EXISTS hstore WITH SCHEMA public;
 
